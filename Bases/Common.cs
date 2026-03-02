@@ -26,7 +26,7 @@ namespace AnyBaseLib.Bases
             return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
         }
 
-        public static string _PrepareClear(string q, List<string> args, Func<string,string> escape_func = null)
+        public static string _PrepareClear(string q, List<string>? args, Func<string,string>? escape_func = null)
         {
             var new_q = q;
             if(args != null)
@@ -72,7 +72,7 @@ namespace AnyBaseLib.Bases
         }
 
         
-        public static List<List<string>> _Query(DbConnection conn, string q, bool non_query)
+        public static List<List<string?>>? _Query(DbConnection conn, string q, bool non_query)
         {
             if (conn.State != ConnectionState.Open) conn.Open();
             
@@ -80,14 +80,14 @@ namespace AnyBaseLib.Bases
             sql.CommandText = q;
             if (!non_query)
             {
-                var list = new List<List<string>>();
+                var list = new List<List<string?>>();
 
                 using (var readerAs = sql.ExecuteReaderAsync())
                 {
                     var reader = readerAs.Result;
                     while (reader.Read())
                     {
-                        var fields = new List<string>();
+                        var fields = new List<string?>();
 
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
@@ -123,26 +123,26 @@ namespace AnyBaseLib.Bases
             }
         }
 
-        public static void QueryAsync(DbConnection conn, string q, Action<List<List<string>>> action = null, bool non_query = false, bool close = true)
+        public static void QueryAsync(DbConnection conn, string q, Action<List<List<string?>>>? action = null, bool non_query = false, bool close = true)
         {
-            int wait_opened = 10;
+            int wait_opened = 40;
             while(wait_opened > 0)
             {
                 if (conn.State == ConnectionState.Open)
                     break;
                 wait_opened--;
-                Task.Delay(150).Wait();
+                Task.Delay(250).Wait();
             }
 
             if (wait_opened == 0) throw new Exception("Error caused while open database connection");
 
-            var task = new Task<List<List<string>>>(() => Query(conn, q, non_query, close));
-            if (action != null) task.ContinueWith(obj => action(obj.Result));
+            var task = new Task<List<List<string?>>?>(() => Query(conn, q, non_query, close));
+            if (action != null) task.ContinueWith(obj => { if (obj.Result != null) action(obj.Result!); });
             task.Start();
 
         }
 
-        public static List<List<string>> Query(DbConnection conn, string q, bool non_query = false, bool close = false)
+        public static List<List<string?>>? Query(DbConnection conn, string q, bool non_query = false, bool close = false)
         {
             //Console.WriteLine("[ !!! DEBUG !!! ] Sync query . . .");
             try

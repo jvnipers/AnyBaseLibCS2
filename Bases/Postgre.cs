@@ -13,11 +13,11 @@ namespace AnyBaseLib.Bases
 {
     internal class PostgreDriver: IAnyBase
     {
-        private NpgsqlConnection dbConn;
+        private NpgsqlConnection? dbConn;
         private CommitMode commit_mode;
         private bool trans_started;
-        private DbTransaction transaction;
-        private string builder;
+        private DbTransaction? transaction;
+        private string builder = string.Empty;
 
         public void Set(CommitMode commit_mode, string db_name, string db_host, string db_user = "", string db_pass = "")
         {
@@ -56,7 +56,7 @@ namespace AnyBaseLib.Bases
             }
         }
 
-        public List<List<string>> Query(string q, List<string> args, bool non_query = false)
+        public List<List<string?>>? Query(string q, List<string>? args, bool non_query = false)
         {
 
             if (commit_mode != CommitMode.AutoCommit)
@@ -68,9 +68,9 @@ namespace AnyBaseLib.Bases
                 }
             }
 
-            return Common.Query(dbConn, Common._PrepareClear(q, args), non_query);
+            return Common.Query(dbConn!, Common._PrepareClear(q, args), non_query);
         }
-        public void QueryAsync(string q, List<string> args, Action<List<List<string>>> action = null, bool non_query = false)
+        public void QueryAsync(string q, List<string>? args, Action<List<List<string?>>>? action = null, bool non_query = false)
         {
             /*
             if (commit_mode != CommitMode.AutoCommit)
@@ -96,31 +96,31 @@ namespace AnyBaseLib.Bases
         {
             if (state)
             {
-                transaction = dbConn.BeginTransaction();
+                transaction = dbConn!.BeginTransaction();
                 trans_started = true;
             }
             else
             {
                 if (commit_mode == CommitMode.NoCommit)
-                    transaction.Rollback();
+                    transaction?.Rollback();
                 else
-                    transaction.Commit();
+                    transaction?.Commit();
                 //transaction.Dispose();
                 trans_started = false;
             }
         }
 
         public DbConnection GetConn()
-        { return dbConn; }
+        { return dbConn!; }
 
         public void Close()
         {
-            dbConn.Close();
+            dbConn?.Close();
         }
 
         public bool Init()
         {
-            return Common.Init(dbConn, "PostgreSQL");
+            return Common.Init(dbConn!, "PostgreSQL");
         }
     }
 }
